@@ -1,0 +1,2 @@
+pyTelegramBotAPI==4.12.0  # or latest version
+pip freeze > requirements.txt

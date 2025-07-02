@@ -8,13 +8,16 @@ from telegram.ext import (
     filters,
 )
 import logging
+import os
 
 # Setup logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO
+)
 
-# Replace with your bot token and username
-TOKEN: Final = '7954682956:AAGN056RC4zGLVjKoGB-CWi1qOtYMf0gKFw'
-BOT_USERNAME: Final = '@RTUService_bot'  # Include @ if checking mentions
+# Get bot token from environment
+TOKEN: Final = os.getenv("BOT_TOKEN")
+BOT_USERNAME: Final = '@RTUService_bot'  # Optional, for mention tracking
 
 # ─────────────────────────────────────────────────────────────
 # Commands
@@ -41,7 +44,7 @@ async def customer_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 # ─────────────────────────────────────────────────────────────
-# Text handling logic
+# Text handler
 
 def simple_response(text: str) -> str:
     processed = text.lower()
@@ -53,12 +56,10 @@ def simple_response(text: str) -> str:
         return 'RTU stands for Remote Terminal Unit, a device used in industrial control systems.'
     if 'service' in processed:
         return 'RTUServiceBot provides support for your RTU-related needs.'
-    # Keep your existing keyword responses as is, or customize further:
     if 'i love python' in processed:
         return 'Remember to subscribe!'
     if 'coding' in processed or 'programming' in processed:
         return 'Coding is fun! Keep practicing every day.'
-    # ... (rest of your existing conditions unchanged) ...
     return 'I do not understand what you wrote...'
 
 # ─────────────────────────────────────────────────────────────
@@ -69,12 +70,10 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text
     user_id = update.message.chat.id
     
-    print(f'User ({user_id}) in {message_type}: "{text}"')
+    logging.info(f'User ({user_id}) in {message_type}: "{text}"')
 
-    # Bot responds to all messages in both private and group chats
     response = simple_response(text)
-
-    print('Bot:', response)
+    logging.info('Bot response: %s', response)
     await update.message.reply_text(response)
 
 # ─────────────────────────────────────────────────────────────
@@ -84,19 +83,18 @@ async def error(update: object, context: ContextTypes.DEFAULT_TYPE):
     logging.error(f"Update {update} caused error: {context.error}", exc_info=True)
 
 # ─────────────────────────────────────────────────────────────
-# Main bot runner
+# Main runner
 
 def main():
     app = ApplicationBuilder().token(TOKEN).build()
 
-    # Add handlers
     app.add_handler(CommandHandler('start', start_command))
     app.add_handler(CommandHandler('help', help_command))
     app.add_handler(CommandHandler('customer', customer_command))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
     app.add_error_handler(error)
 
-    print("🤖 RTUServiceBot is running...")
+    logging.info("🤖 RTUServiceBot is running...")
     app.run_polling()
 
 if __name__ == '__main__':
